@@ -30,11 +30,18 @@ def send_exam(request):
         if not student:
            return Response( {"mensagem": "Estudante não encontrado."}, status=404 )
         
+        exam_has_sended = ExamResponse.objects.filter(student=student, exam=exam)
+        if exam_has_sended.exists():
+            return Response(
+                {"mensagem": "Exame já foi enviado por este estudante."},
+                status=400
+            )
+
         exam_questions = exam.questions.all()
         exam_question_ids = {q.id for q in exam_questions}
 
-        resultados = []
-        acertos = 0
+        results = []
+        hits = 0
 
         exam_response = ExamResponse.objects.create(student=student, exam=exam)
 
@@ -43,7 +50,7 @@ def send_exam(request):
             resposta_usuario = item.get("response")
 
             if question_id not in exam_question_ids:
-                resultados.append({
+                results.append({
                     "question_id": question_id,
                     "mensagem": "Questão não pertence a este exame.",
                     "acertou": False
@@ -53,7 +60,7 @@ def send_exam(request):
             question = Question.objects.get(pk=question_id)
             alternativa_correta = question.alternatives.filter(is_correct=True).first()
 
-            acertou = (
+            correct = (
                 alternativa_correta and
                 resposta_usuario.strip().upper() == chr(64 + alternativa_correta.option)
             )
@@ -62,33 +69,31 @@ def send_exam(request):
                 exam_response=exam_response,
                 question=question,
                 selected_option=resposta_usuario.strip().upper(),
-                is_correct=acertou
+                is_correct=correct
             )
 
-            if acertou:
-                acertos += 1
+            if correct:
+                hits += 1
 
-            resultados.append({
+            results.append({
                 "question_id": question_id,
                 "question": question.content,
                 "resposta_usuario": resposta_usuario,
                 "correta": chr(64 + alternativa_correta.option) if alternativa_correta else None,
-                "acertou": acertou
+                "acertou": correct
             })
 
         return Response({
             "prova": exam.name,
             "estudante": student.name,
             "mensagem": "Respostas salvas e processadas com sucesso.",
-            "total_questoes": len(resultados),
-            "total_acertos": acertos,
-            "nota_percentual": round((acertos / len(resultados)) * 100, 2) if resultados else 0,
-            "resultado": resultados,
+            "total_questoes": len(results),
+            "total_acertos": hits,
+            "nota_percentual": round((hits / len(results)) * 100, 2) if results else 0,
+            "resultado": results,
             "success": True
         }, status=201)
 
-    except json.JSONDecodeError:
-        return Response({"mensagem": "JSON inválido."}, status=400)
     except Exception as e:
         return Response({"mensagem": f"Erro interno: {str(e)}"}, status=500)
     
@@ -107,11 +112,11 @@ def get_exam_results(request, exam_id, student_id):
 
     respostas = exam_response.question_responses.all()
     total = respostas.count()
-    acertos = respostas.filter(is_correct=True).count()
+    hits = respostas.filter(is_correct=True).count()
 
-    resultado = [
+    result = [
         {
-            "question": r.question.content,
+            "questao": r.question.content,
             "resposta_usuario": r.selected_option,
             "acertou": r.is_correct
         } for r in respostas
@@ -121,7 +126,7 @@ def get_exam_results(request, exam_id, student_id):
         "prova": exam_response.exam.name,
         "estudante": exam_response.student.name,
         "total_questoes": total,
-        "total_acertos": acertos,
-        "nota_percentual": round((acertos / total) * 100, 2) if total else 0,
-        "respostas": resultado
+        "total_acertos": hits,
+        "nota_percentual": round((hits / total) * 100, 2) if total else 0,
+        "respostas": result
     })
