@@ -1,10 +1,13 @@
 JAZZMIN_SETTINGS = {
     "site_title": "MedWay Admin",
-    "site_header": "MedWay",
-    "site_brand": "MedWay",
+    "site_header": "MedWay Admin",
+    "site_brand": "MedWay Admin",
     "welcome_sign": "Bem-vindo ao MedWay Admin",
     "copyright": "MedWay",
     "user_avatar": None,
+
+    "site_logo": "images/logo-medway.png",
+    "site_logo_small": "images/logo-medway-small.png", 
 
     "topmenu_links": [
         {"name": "Home", "url": "/admin", "new_window": False},
@@ -12,7 +15,6 @@ JAZZMIN_SETTINGS = {
     ],
 
     "usermenu_links": [
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
         {"model": "auth.user"}
     ],
 
@@ -21,7 +23,6 @@ JAZZMIN_SETTINGS = {
     "hide_apps": [],
     "hide_models": [],
 
-    # Ordem de exibição das apps e models
     "order_with_respect_to": [
         "student", 
         "exam", 
@@ -29,7 +30,6 @@ JAZZMIN_SETTINGS = {
         "answers"
     ],
 
-    # Links customizados dentro das apps
     "custom_links": {
         "books": [{
             "name": "Make Messages", 
@@ -39,7 +39,6 @@ JAZZMIN_SETTINGS = {
         }]
     },
 
-    # Ícones para apps e models
     "icons": {
         "student": "fas fa-users-cog",
         "student.Student": "fas fa-user",
@@ -64,7 +63,6 @@ JAZZMIN_SETTINGS = {
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
 
-    # Layout do change form
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {
         "auth.user": "collapsible",
